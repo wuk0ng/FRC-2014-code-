@@ -1,3 +1,10 @@
+// Wire Master Writer
+// by Dietrich Henson <http://sun-wuk0ng.tumblr.com>
+
+// Demonstrates use of the Wire library
+// Writes data to an I2C/TWI slave device
+// Refer to the "Wire Slave Receiver" example for use with this
+
 // Created 29 March 2006
 
 // This example code is in the public domain.
@@ -10,7 +17,7 @@ int xAxisCompass, yAxisCompass, zAxisCompass;  //sets axii for Chip compass;
 int xAxisAccel,yAxisAccel, zAxisAccel;         //accelerometer axis;
 float CMx,CMy;                                 //sets variables CMx and CMy;
 float pitch, roll;                             //pitch and roll compensation for tilt to work with Gyro;
-
+int heading;
 void setup() 
 {
     Wire.begin();
@@ -192,7 +199,7 @@ void updateCMy()
 {
   
     //CMy = (float) yAxisCompass*cos(roll) - zAxisCompass*sin(roll);
-    CMy = (yAxisCompass);
+    CMy = (zAxisCompass);
 }
 
 /*Updates X and Y pulls, calculates the heading (in degrees) using atan2;*/ 
@@ -201,5 +208,5 @@ void updateHeading()
 {
     updateCMx();
     updateCMy();
-    int heading =  atan2(CMy,CMx)/PI*180+180;
+    heading =  atan2(CMy,CMx)/PI*180+180;
 }
