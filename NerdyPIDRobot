@@ -1,0 +1,126 @@
+/*----------------------------------------------------------------------------*/
+/* Copyright (c) FIRST 2008. All Rights Reserved.                             */
+/* Open Source Software - may be modified and shared by FRC teams. The code   */
+/* must be accompanied by the FIRST BSD license file in the root directory of */
+/* the project.                                                               */
+/*----------------------------------------------------------------------------*/
+
+package edu.wpi.first.wpilibj.templates;
+
+import edu.wpi.first.wpilibj.IterativeRobot;
+
+import NerdHerd.Sensor.NerdyCompass;
+import NerdHerd.Sensor.NerdyGyro;
+import NerdHerd.Sensor.NerdyAccel;
+import com.sun.squawk.util.MathUtils;
+
+
+
+/**
+ * The VM is configured to automatically run this class, and to call the
+ * functions corresponding to each mode, as described in the IterativeRobot
+ * documentation. If you change the name of this class or the package after
+ * creating this project, you must also update the manifest file in the resource
+ * directory.
+ */
+public class NerdyPIDRobot extends IterativeRobot{
+
+    private double tolerance;
+    private double heading, error;
+    private double headingOffset = 0;
+    private NerdyCompass Compass;
+    private NerdyAccel Accel;
+    private NerdyGyro Gyro;
+    
+    public void init(){
+        Compass.initCompass();
+        Accel.initAccel();
+        Gyro.initGyro();
+        
+        Compass.readCompass();
+        Accel.readAccel();
+        Gyro.readGyro();
+        
+        headingOffset = calcHeadingNTC();
+    }
+    
+    public void setTolerance(double degree){
+        tolerance = degree;
+    }
+    
+    public double getTolerance(){
+        return tolerance;
+    }
+    
+    public boolean isHeadingTolerable(){
+        getHeading();
+        if ((heading < heading+tolerance) && (heading > heading-tolerance)){
+            return true;
+        } else {
+            return false;
+        } 
+    }
+    
+    public double getHeading(){
+        return heading;
+    }
+    
+    public double get360Angle(double y, double x){
+        double angle = MathUtils.atan(y/x);
+        if (x > 0){
+            if (y < 0){
+                angle = 360 - angle;
+            }
+        } else {
+            if (y > 0){
+                angle = 180 - angle;
+            } else {
+                angle += 180;
+            }
+        }
+        return angle;
+    }
+    
+    private double calcHeadingNTC(){//Non-Tilt Compensated
+        Accel.readAccel();
+        Compass.readCompass();
+        int xAxisCompass = Compass.getAxisX();
+        int yAxisCompass = Compass.getAxisY();
+        heading = MathUtils.atan(yAxisCompass/xAxisCompass) - headingOffset;
+        return heading;
+    }
+    
+    private double calcHeadingTC(){  
+        Accel.readAccel();
+        Compass.readCompass();
+        int xAxisAccel = Accel.getAxisX();
+        int yAxisAccel = Accel.getAxisY();
+        int xAxisCompass = Compass.getAxisX();
+        int yAxisCompass = Compass.getAxisY();
+        int zAxisCompass = Compass.getAxisZ();
+        
+        double pitch = MathUtils.asin(yAxisAccel);
+        double roll = MathUtils.asin(xAxisAccel);
+        double CMy = xAxisCompass*Math.cos(pitch) + zAxisCompass*Math.sin(pitch);
+        double CMx = xAxisCompass*Math.sin(roll) + yAxisCompass*Math.sin(roll)*Math.cos(roll) - zAxisCompass*Math.sin(roll)*Math.cos(pitch);
+        heading = MathUtils.atan(CMy/CMx) - headingOffset;
+        return heading;
+    }
+
+    private boolean IsCWShorter(double desiredAngle){
+        double CWDistance = Math.abs(heading - desiredAngle);
+        double CCWDistance = 360 - Math.abs(heading - desiredAngle);
+        if (CWDistance <= CCWDistance){
+            error = CWDistance;
+           return true;
+        }else{
+            error = CCWDistance;
+            return false;
+        }
+    }   
+    
+    private void GetPIOutput(){
+        
+        
+    }
+}
