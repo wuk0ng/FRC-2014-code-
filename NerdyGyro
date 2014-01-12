@@ -36,10 +36,10 @@ public class NerdyGyro extends SensorBase {
         DigitalModule module = DigitalModule.getInstance(1);
         gyro = module.getI2C(104);
     }
-    public void initGyro(){     
+    public void init(){     
         gyro.write(62, 01);
     } 
-    public void readGyro(){
+    public void read(){
         byte tempXYZ[] = new byte[6];
         gyro.read(0x1D, 6, tempXYZ);
         xAxisGyro = ((int)tempXYZ[0] << 8) | tempXYZ[1];  //combine 2 bytes into one integer for x;
