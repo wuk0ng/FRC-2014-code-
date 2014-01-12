@@ -31,25 +31,20 @@ public class NerdyGyro extends SensorBase {
      */
     private I2C gyro;
     private int xAxisGyro, yAxisGyro, zAxisGyro;
-    public void NerdyGyro() {
+    
+    public NerdyGyro() {
         DigitalModule module = DigitalModule.getInstance(1);
         gyro = module.getI2C(104);
     }
-
-    public void initGyro(){
-        
+    public void initGyro(){     
         gyro.write(62, 01);
-    }
-    
+    } 
     public void readGyro(){
-    
         byte tempXYZ[] = new byte[6];
         gyro.read(0x1D, 6, tempXYZ);
         xAxisGyro = ((int)tempXYZ[0] << 8) | tempXYZ[1];  //combine 2 bytes into one integer for x;
         yAxisGyro = ((int)tempXYZ[2] << 8) | tempXYZ[3];  //combine 2 bytes into one integer for x;
-        zAxisGyro = ((int)tempXYZ[4] << 8) | tempXYZ[5];  //combine 2 bytes into one integer for x;
-
-        
+        zAxisGyro = ((int)tempXYZ[4] << 8) | tempXYZ[5];  //combine 2 bytes into one integer for x; 
     }
     public int getAxisX() {
         return xAxisGyro;
