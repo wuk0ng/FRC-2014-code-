@@ -45,13 +45,13 @@ public class NerdyPIDRobot extends IterativeRobot{
         
         JoystickMain = new Joystick(1);
         
-        Compass.initCompass();
-        Accel.initAccel();
-        Gyro.initGyro();
+        Compass.init();
+        Accel.init();
+        Gyro.init();
         
-        Compass.readCompass();
-        Accel.readAccel();
-        Gyro.readGyro();
+        Compass.read();
+        Accel.read();
+        Gyro.read();
         
         headingOffset = calcHeadingNTC();
     }
@@ -94,8 +94,8 @@ public class NerdyPIDRobot extends IterativeRobot{
     }
     
     private double calcHeadingNTC(){//Non-Tilt Compensated
-        Accel.readAccel();
-        Compass.readCompass();
+        Accel.read();
+        Compass.read();
         int xAxisCompass = Compass.getAxisX();
         int yAxisCompass = Compass.getAxisY();
         heading = MathUtils.atan(yAxisCompass/xAxisCompass) - headingOffset;
@@ -103,8 +103,8 @@ public class NerdyPIDRobot extends IterativeRobot{
     }
     
     private double calcHeadingTC(){  
-        Accel.readAccel();
-        Compass.readCompass();
+        Accel.read();
+        Compass.read();
         int xAxisAccel = Accel.getAxisX();
         int yAxisAccel = Accel.getAxisY();
         int xAxisCompass = Compass.getAxisX();
