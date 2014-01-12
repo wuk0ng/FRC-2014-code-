@@ -1,0 +1,28 @@
+Assumptions :	 0 Degrees is North.
+		           Motors are victors 
+	           	9Dof chip is (ADXL345)(HMC5883L)(ITG-3200)
+NerdyPIDRobot
+	init() - Declares Motors, Initializes 9Dof, Declares Joystick, Calculates Initial Heading to set as zero.
+	
+	setTolerance() - set a tolerance that is used to compare the desired angle from the joystick to the desired 9Dof angle
+
+	getTolerance() - returns a double. tolerance variable, default is 0
+
+	isHeadingTolerable( double desiredAngle) - returns a boolean checking if the desired angle within the tolerance variable
+	
+	getHeading() - returns a double stating the heading;
+
+	get360JoystickAngle() - returns a double between 0 and 360.  0 is straight up. Uses the Joystick X and Y axes.
+
+	calcHeadingNTC() - Calculates and returns a non-tilt compensated heading.
+
+	calcHeadingTC() - Calculates and returns a tilt compensated heading.
+
+	isCWShorter() - Returns whether robot should rotate clockwise or counterclockwise. Clockwise returns true. Updates the angular distance from the desired angle. Angular distance is positive for clockwise and negative for counterclockwise.
+
+	getPIOutput() - ***Incomplete*** Should return a double between -1 and 1 regulating turn speed.
+
+	MoveAndRotate() - grabs the desired angle and Joystick Y Magnitude and set motors speeds accordingly.
+
+	Rotate() - ***Incomplete***Sets motor values to robot based on twist values from joystick. 
+	
