@@ -29,11 +29,11 @@ public class NerdyAccel extends SensorBase {
         DigitalModule module = DigitalModule.getInstance(1);
         accel = module.getI2C(83);
     }
-    public void initAccel(){ 
+    public void init(){ 
         accel.write(45, 8);
     }
     
-    public void readAccel(){
+    public void read(){
         byte tempXYZ[] = new byte[6];
         accel.read(0x32, 6, tempXYZ);
         xAxisAccel = ((int)tempXYZ[1] << 8) | tempXYZ[0];  //combine 2 bytes into one integer for x;
