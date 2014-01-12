@@ -35,10 +35,10 @@ public class NerdyCompass extends SensorBase {
         DigitalModule module = DigitalModule.getInstance(1);
         compass = module.getI2C(30);
     }
-    public void initCompass(){   
+    public void init(){   
         compass.write(02, 00);
     }
-    public void readCompass(){
+    public void read(){
         byte tempXYZ[] = new byte[6];
         compass.read(0x03, 6, tempXYZ);
         xAxisCompass = ((int)tempXYZ[0] << 8) | tempXYZ[1];  //combine 2 bytes into one integer for x;
