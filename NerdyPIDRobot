@@ -13,6 +13,8 @@ import NerdHerd.Sensor.NerdyCompass;
 import NerdHerd.Sensor.NerdyGyro;
 import NerdHerd.Sensor.NerdyAccel;
 import com.sun.squawk.util.MathUtils;
+import edu.wpi.first.wpilibj.Victor;
+import edu.wpi.first.wpilibj.Joystick;
 
 
 
@@ -26,13 +28,23 @@ import com.sun.squawk.util.MathUtils;
 public class NerdyPIDRobot extends IterativeRobot{
 
     private double tolerance;
-    private double heading, error;
+    private double heading, error, desiredAngle;
+    private double turnSpeed, joystickYMagnitude, ltPower, rtPower;
     private double headingOffset = 0;
     private NerdyCompass Compass;
     private NerdyAccel Accel;
     private NerdyGyro Gyro;
-    
+    private Joystick JoystickMain;
+    private Victor LtDriveMain, LtDriveSub, RtDriveMain, RtDriveSub;
+            
     public void init(){
+        LtDriveMain = new Victor(1);
+        LtDriveSub = new Victor(3);
+        RtDriveMain = new Victor(2);
+        RtDriveSub = new Victor(4);
+        
+        JoystickMain = new Joystick(1);
+        
         Compass.initCompass();
         Accel.initAccel();
         Gyro.initGyro();
@@ -52,24 +64,24 @@ public class NerdyPIDRobot extends IterativeRobot{
         return tolerance;
     }
     
-    public boolean isHeadingTolerable(){
+    public boolean isHeadingTolerable(double desiredAngle){
         getHeading();
-        if ((heading < heading+tolerance) && (heading > heading-tolerance)){
-            return true;
-        } else {
-            return false;
-        } 
+        return ((desiredAngle < heading+tolerance) && (desiredAngle > heading-tolerance));
     }
     
     public double getHeading(){
         return heading;
     }
     
-    public double get360Angle(double y, double x){
+    public double get360JoystickAngle(){
+        double y = JoystickMain.getY();
+        double x = JoystickMain.getX();
         double angle = MathUtils.atan(y/x);
         if (x > 0){
             if (y < 0){
                 angle = 360 - angle;
+            } else {
+                angle += 270;
             }
         } else {
             if (y > 0){
@@ -107,20 +119,45 @@ public class NerdyPIDRobot extends IterativeRobot{
         return heading;
     }
 
-    private boolean IsCWShorter(double desiredAngle){
+    private boolean isCWShorter(){
         double CWDistance = Math.abs(heading - desiredAngle);
         double CCWDistance = 360 - Math.abs(heading - desiredAngle);
         if (CWDistance <= CCWDistance){
             error = CWDistance;
            return true;
         }else{
-            error = CCWDistance;
+            error = -CCWDistance;
             return false;
         }
     }   
     
-    private void GetPIOutput(){
+    public double GetPIOutput(){
+        return 0;
+        
+    }
+    
+    public void MoveAndRotate(){
+        desiredAngle = get360JoystickAngle();
+        joystickYMagnitude = JoystickMain.getY();
+        if (isHeadingTolerable(desiredAngle)){
+            ltPower = joystickYMagnitude;
+            rtPower = joystickYMagnitude;
+        } else {
+            isCWShorter();
+            turnSpeed = GetPIOutput();
+            ltPower = turnSpeed*0.5 + joystickYMagnitude*0.5;
+            rtPower = turnSpeed*0.5 - joystickYMagnitude*0.5;
+        }
+        LtDriveMain.set(ltPower);
+        LtDriveMain.set(ltPower);
+        RtDriveMain.set(rtPower);
+        RtDriveMain.set(rtPower);
+    }
+    
+    public void Rotate(){
+        turnSpeed = JoystickMain.getTwist();
         
         
     }
+    
 }
