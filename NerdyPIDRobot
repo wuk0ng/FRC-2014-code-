@@ -145,7 +145,6 @@ public class NerdyPIDRobot extends IterativeRobot{
     public void MoveAndRotate(){
         desiredAngle = get360JoystickAngle();
         joystickYMagnitude = JoystickMain.getY();
-        turnSpeed = GetPIOutput();
         if (isHeadingTolerable(desiredAngle)){
             ltPower = joystickYMagnitude;
             rtPower = joystickYMagnitude;
