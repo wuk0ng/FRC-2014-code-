@@ -31,11 +31,13 @@ public class NerdyPIDRobot extends IterativeRobot{
     private double heading, error, desiredAngle;
     private double turnSpeed, joystickYMagnitude, ltPower, rtPower;
     private double headingOffset = 0;
+    private int PIincrement = 0;
     private NerdyCompass Compass;
     private NerdyAccel Accel;
     private NerdyGyro Gyro;
     private Joystick JoystickMain;
     private Victor LtDriveMain, LtDriveSub, RtDriveMain, RtDriveSub;
+    
             
     public void init(){
         LtDriveMain = new Victor(1);
@@ -132,13 +134,18 @@ public class NerdyPIDRobot extends IterativeRobot{
     }   
     
     public double GetPIOutput(){
-        return 0;
+        isCWShorter();
+        double PIOutput = error/90; 
+        
+        PIincrement++;
+        return PIOutput;
         
     }
     
     public void MoveAndRotate(){
         desiredAngle = get360JoystickAngle();
         joystickYMagnitude = JoystickMain.getY();
+        turnSpeed = GetPIOutput();
         if (isHeadingTolerable(desiredAngle)){
             ltPower = joystickYMagnitude;
             rtPower = joystickYMagnitude;
