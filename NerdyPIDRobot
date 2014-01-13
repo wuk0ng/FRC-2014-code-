@@ -76,21 +76,21 @@ public class NerdyPIDRobot extends IterativeRobot{
     public double get360JoystickAngle(){
         double y = JoystickMain.getY();
         double x = JoystickMain.getX();
-        double angle = MathUtils.atan(y/x);
-        if (x > 0){
-            if (y < 0){
+        double angle = Math.atan(x/y) * 180 / Math.PI;  
+        if (x >= 0){
+            if (y >= 0){
                 angle = 360 - angle;
             } else {
-                angle += 270;
+                angle = 180 - angle;
             }
         } else {
-            if (y > 0){
-                angle = 180 - angle;
+            if (y >= 0){
+                angle = -angle;
             } else {
-                angle += 180;
+                angle = 180 - angle; 
             }
         }
-        return angle;
+        return angle%360;
     }
     
     private double calcHeadingNTC(){//Non-Tilt Compensated
