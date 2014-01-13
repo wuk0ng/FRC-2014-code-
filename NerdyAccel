@@ -35,7 +35,7 @@ public class NerdyAccel extends SensorBase {
     
     public void read(){
         byte tempXYZ[] = new byte[6];
-        accel.read(0x32, 6, tempXYZ);//try 0x53
+        accel.read(50, 6, tempXYZ);//try 0x53
         xAxisAccel = ((int)tempXYZ[1] << 8) | tempXYZ[0];  //combine 2 bytes into one integer for x;
         yAxisAccel = ((int)tempXYZ[3] << 8) | tempXYZ[2];  //combine 2 bytes into one integer for x;
         zAxisAccel = ((int)tempXYZ[5] << 8) | tempXYZ[4];  //combine 2 bytes into one integer for x;
