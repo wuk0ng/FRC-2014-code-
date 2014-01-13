@@ -40,7 +40,7 @@ public class NerdyCompass extends SensorBase {
     }
     public void read(){
         byte tempXYZ[] = new byte[6];
-        compass.read(0x03, 6, tempXYZ);
+        compass.read(03, 6, tempXYZ);
         xAxisCompass = ((int)tempXYZ[0] << 8) | tempXYZ[1];  //combine 2 bytes into one integer for x;
         yAxisCompass = ((int)tempXYZ[2] << 8) | tempXYZ[3];  //combine 2 bytes into one integer for x;
         zAxisCompass = ((int)tempXYZ[4] << 8) | tempXYZ[5];  //combine 2 bytes into one integer for x; 
