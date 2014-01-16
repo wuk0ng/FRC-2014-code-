@@ -171,7 +171,14 @@ public class NerdyPIDRobot extends IterativeRobot{
     
     public void Rotate(){
         turnSpeed = JoystickMain.getTwist();
-        
+        try{
+        LtDriveMain.set(turnSpeed);
+        LtDriveSub.set(turnSpeed);
+        RtDriveMain.set(-turnSpeed);
+        RtDriveSub.set(-turnSpeed);
+        }catch (Exception e){
+        System.out.println(e)
+        }
         
     }
     
