@@ -45,8 +45,10 @@ public class NerdyPIDRobot extends IterativeRobot{
         LtDriveSub = new CANJaguar(3);
         RtDriveMain = new CANJaguar(2);
         RtDriveSub = new CANJaguar(4);
-        }catch;
-        Exception(e);
+        }catch;(Exception e){
+        
+        System.out.println(e)
+        }
         
         JoystickMain = new Joystick(1);
         
@@ -157,10 +159,14 @@ public class NerdyPIDRobot extends IterativeRobot{
             ltPower = turnSpeed*0.5 + joystickYMagnitude*0.5;
             rtPower = turnSpeed*0.5 - joystickYMagnitude*0.5;
         }
+        try{
         LtDriveMain.set(ltPower);
         LtDriveMain.set(ltPower);
         RtDriveMain.set(rtPower);
         RtDriveMain.set(rtPower);
+        }catch (Exception e){
+        System.out.println(e)
+        }
     }
     
     public void Rotate(){
