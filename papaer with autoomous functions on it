@@ -1,0 +1,10 @@
+MoveAndRotate(get360JoyStickAngle,Joystick.getY)
+while(!distance)
+while(!isHeadingTolerable)
+MoveAndRotate(desiredAngle, getPIDOutput Linear(distance)
+
+if(distanceRemaining<0) {break;}
+if(!isHeadingTolerable(r))
+{RotateAngle()}
+
+//Nico this is all the stuff on the paper you gave me
