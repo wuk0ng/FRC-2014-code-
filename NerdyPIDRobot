@@ -15,6 +15,7 @@ import NerdHerd.Sensor.NerdyAccel;
 import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Timer;
 
 
 
@@ -27,10 +28,14 @@ import edu.wpi.first.wpilibj.Joystick;
  */
 public class NerdyPIDRobot extends IterativeRobot{
 
-    private double tolerance;
-    private double heading, error, desiredAngle;
+    private double headingTolerance, distanceTolerance;
+    private double error, desiredAngle;
     private double turnSpeed, joystickYMagnitude, ltPower, rtPower;
     private double headingOffset = 0;
+    private double heading = 0;
+    private double linearPower, angularPower;
+    private double PIDOutputLinear, PIDOutputAngular;
+    private double distanceTraveled = 0;
     private int PIincrement = 0;
     private NerdyCompass Compass;
     private NerdyAccel Accel;
@@ -45,9 +50,9 @@ public class NerdyPIDRobot extends IterativeRobot{
         LtDriveSub = new CANJaguar(3);
         RtDriveMain = new CANJaguar(2);
         RtDriveSub = new CANJaguar(4);
-        }catch;(Exception e){
+        }catch(Exception e){
         
-        System.out.println(e)
+        System.out.println(e);
         }
         
         JoystickMain = new Joystick(1);
@@ -63,27 +68,46 @@ public class NerdyPIDRobot extends IterativeRobot{
         headingOffset = calcHeadingNTC();
     }
     
-    public void setTolerance(double degree){
-        tolerance = degree;
+    public void setHeadingTolerance(double degree){
+        headingTolerance = degree;
     }
     
-    public double getTolerance(){
-        return tolerance;
+    public double getHeadingTolerance(){
+        return headingTolerance;
     }
     
     public boolean isHeadingTolerable(double desiredAngle){
         getHeading();
-        return ((desiredAngle < heading+tolerance) && (desiredAngle > heading-tolerance));
+        return ((desiredAngle < heading+headingTolerance) && (desiredAngle > heading-headingTolerance));
     }
     
     public double getHeading(){
         return heading;
     }
     
+    public void setDistanceTolerance(double degree){
+        distanceTolerance = degree;
+    }
+    
+    public double getDistanceTolerance(){
+        return distanceTolerance;
+    }
+    
+    public boolean isDistanceTolerable(double desiredDistance){
+        getHeading();
+        return ((desiredDistance < distanceTraveled+distanceTolerance) && (desiredDistance > distanceTraveled-distanceTolerance));
+    }
+    
+    public double updateDistanceTraveled(){
+        
+        return distanceTraveled;
+    }
+    
+    
     public double get360JoystickAngle(){
         double y = JoystickMain.getY();
         double x = JoystickMain.getX();
-        double angle = Math.atan(x/y) * 180 / Math.PI;  
+        double angle = MathUtils.atan(x/y) * 180 / Math.PI;  
         if (x >= 0){
             if (y >= 0){
                 angle = 360 - angle;
@@ -100,8 +124,7 @@ public class NerdyPIDRobot extends IterativeRobot{
         return angle%360;
     }
     
-    private double calcHeadingNTC(){//Non-Tilt Compensated
-        Accel.read();
+    private double calcHeadingNTC(){//Non-Tilt Compensated Compass
         Compass.read();
         int xAxisCompass = Compass.getAxisX();
         int yAxisCompass = Compass.getAxisY();
@@ -109,7 +132,7 @@ public class NerdyPIDRobot extends IterativeRobot{
         return heading;
     }
     
-    private double calcHeadingTC(){  
+    private double calcHeadingTC(){  //Tilt Compensated Compass
         Accel.read();
         Compass.read();
         int xAxisAccel = Accel.getAxisX();
@@ -126,60 +149,92 @@ public class NerdyPIDRobot extends IterativeRobot{
         return heading;
     }
 
-    private boolean isCWShorter(){
-        double CWDistance = Math.abs(heading - desiredAngle);
-        double CCWDistance = 360 - Math.abs(heading - desiredAngle);
-        if (CWDistance <= CCWDistance){
-            error = CWDistance;
-           return true;
-        }else{
-            error = -CCWDistance;
-            return false;
+    private double gyroCompassHeading(){
+        double time = ;//Make time a constant.
+        heading = (heading + Gyro.getAxisZ()*time) % 360;
+        return heading;
+    }
+    
+    private void calcShortestRotation(){
+        error = desiredAngle - heading;
+
+        if (Math.abs(error) >  180){
+            error = -sign(error)*(360 - Math.abs(error));
         }
     }   
     
-    public double GetPIOutput(){
-        isCWShorter();
-        double PIOutput = error/90; 
+    public double GetPIDOutputAngular(double desiredAngle){
+        calcShortestRotation();
         
-        PIincrement++;
-        return PIOutput;
+        
+        double PIDOutputAngular = error  ; 
+        return PIDOutputAngular;
         
     }
     
-    public void MoveAndRotate(){
-        desiredAngle = get360JoystickAngle();
-        joystickYMagnitude = JoystickMain.getY();
-        if (isHeadingTolerable(desiredAngle)){
-            ltPower = joystickYMagnitude;
-            rtPower = joystickYMagnitude;
+    public double getPIDOutputLinear(double distance){
+        
+        PIDOutputLinear = 0;
+        return PIDOutputLinear;
+    }
+    
+    public void MoveAndRotate(double desiredAngle, double linearPower){
+        //desiredAngle = get360JoystickAngle();
+        //linearPower = JoystickMain.getY();
+       
+            if (isHeadingTolerable(desiredAngle)){
+                ltPower = linearPower;
+                rtPower = linearPower;
+            } else {
+                angularPower = GetPIDOutputAngular(desiredAngle);
+                ltPower = turnSpeed*0.5 + linearPower*0.5;
+                rtPower = turnSpeed*0.5 + linearPower*0.5;
+            }
+            try{
+                LtDriveMain.set(ltPower);
+                LtDriveMain.set(ltPower);
+                RtDriveMain.set(rtPower);
+                RtDriveMain.set(rtPower);
+            }catch (Exception e){
+                System.out.println(e);
+            }
+    }
+    
+    public void RotateRate(){
+        angularPower = JoystickMain.getTwist();
+        try{
+            LtDriveMain.set(angularPower);
+            LtDriveSub.set(angularPower);
+            RtDriveMain.set(-angularPower);
+            RtDriveSub.set(-angularPower);
+        }catch (Exception e){
+            System.out.println(e);
+        }
+        
+    }
+    
+        public void RotateAngle(double desiredAngle){
+        
+            angularPower = GetPIDOutputAngular(desiredAngle);
+        try{
+            LtDriveMain.set(angularPower);
+            LtDriveSub.set(angularPower);
+            RtDriveMain.set(-angularPower);
+            RtDriveSub.set(-angularPower);
+        }catch (Exception e){
+            System.out.println(e);
+        }
+        
+    }
+        
+    private int sign(double number){
+        
+        if (number > 0){
+            return 1;
+        }else if (number < 0){
+            return -1;
         } else {
-            isCWShorter();
-            turnSpeed = GetPIOutput();
-            ltPower = turnSpeed*0.5 + joystickYMagnitude*0.5;
-            rtPower = turnSpeed*0.5 - joystickYMagnitude*0.5;
-        }
-        try{
-        LtDriveMain.set(ltPower);
-        LtDriveMain.set(ltPower);
-        RtDriveMain.set(rtPower);
-        RtDriveMain.set(rtPower);
-        }catch (Exception e){
-        System.out.println(e)
+            return 0;
         }
     }
-    
-    public void Rotate(){
-        turnSpeed = JoystickMain.getTwist();
-        try{
-        LtDriveMain.set(turnSpeed);
-        LtDriveSub.set(turnSpeed);
-        RtDriveMain.set(-turnSpeed);
-        RtDriveSub.set(-turnSpeed);
-        }catch (Exception e){
-        System.out.println(e)
-        }
-        
-    }
-    
 }
