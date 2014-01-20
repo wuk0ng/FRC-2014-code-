@@ -45,69 +45,133 @@ public class NerdyPIDRobot extends IterativeRobot{
     
             
     public void init(){
-    try{
-        LtDriveMain = new CANJaguar(1);
-        LtDriveSub = new CANJaguar(3);
-        RtDriveMain = new CANJaguar(2);
-        RtDriveSub = new CANJaguar(4);
+    
+    /*
+    This function runs at the start of autonomous.
+    It initializes the motors, Joystick, and 9dof sensor.
+    It also does calculations to check for and elimate bias.
+    */
+    
+        try{
+            LtDriveMain = new CANJaguar(1);
+            LtDriveSub = new CANJaguar(3);
+            RtDriveMain = new CANJaguar(2);
+            RtDriveSub = new CANJaguar(4);
         }catch(Exception e){
-        
-        System.out.println(e);
+            System.out.println(e);
         }
-        
         JoystickMain = new Joystick(1);
-        
         Compass.init();
         Accel.init();
         Gyro.init();
-        
         Compass.read();
         Accel.read();
         Gyro.read();
-        
         headingOffset = calcHeadingNTC();
     }
     
     public void setHeadingTolerance(double degree){
+    
+    /*
+    This sets a tolerance for the heading in degrees.
+    Heading is tolerable if is + or - tolerance.
+    Default is 0.
+    */
+    
         headingTolerance = degree;
     }
     
     public double getHeadingTolerance(){
+    
+    /*
+    Returns heading tolerance in degrees. 
+    If not set, this should return 0.
+    */
+    
         return headingTolerance;
     }
     
     public boolean isHeadingTolerable(double desiredAngle){
-        getHeading();
-        return ((desiredAngle < heading+headingTolerance) && (desiredAngle > heading-headingTolerance));
+    
+    /*
+    Returns true if the heading is within the tolerance
+    Otherwise returns false.
+    */
+    
+        double lastHeading = getHeading();
+        return ((desiredAngle < lastHeading+headingTolerance) && (desiredAngle > lastHeading-headingTolerance));
     }
     
     public double getHeading(){
+    
+    /*
+    Returns the last updated Heading.
+    Must use calcHeadingNTC(), calcHeadingTC(), or gyroCompassHeading() prior
+    to get the most recent result.
+    */
+    
         return heading;
     }
     
-    public void setDistanceTolerance(double degree){
-        distanceTolerance = degree;
+    public void setDistanceTolerance(double meter){
+    
+    /*
+    This sets a tolerance for the distance traveled in meters.
+    Distance traveled is tolerable if is + or - tolerance.
+    Default is 0.
+    */
+    
+        distanceTolerance = meter;
     }
     
     public double getDistanceTolerance(){
+    
+    /*
+    Returns heading tolerance in meters. 
+    If not set, this should return 0.
+    */
+    
         return distanceTolerance;
     }
     
     public boolean isDistanceTolerable(double desiredDistance){
-        getHeading();
-        return ((desiredDistance < distanceTraveled+distanceTolerance) && (desiredDistance > distanceTraveled-distanceTolerance));
+    
+    /*
+    Returns true if the distance traveled is within the tolerance
+    Otherwise returns false.
+    */
+    
+        double distance_Traveled = getDistance();
+        return ((desiredDistance < distance_Traveled+distanceTolerance) && (desiredDistance > distance_Traveled-distanceTolerance));
     }
     
-    public double updateDistanceTraveled(){
-        
+    public double getDistanceTraveled(){
+    
+    /*
+    Returns the last updated distance traveled.
+    Must use calcDistanceTraveled() prior to get the most recent result.
+    */
+    
         return distanceTraveled;
     }
     
     
     public double get360JoystickAngle(){
-        double y = JoystickMain.getY();
+    
+    /*
+    Grabs an 360 degree angle reading from the joystick.
+    0 degrees is north. 90 degrees is west.
+    Should rewrite for arcade drive so that robot always faces forward.
+    Should subtract Joystick Bias.
+    */
+    
+        double y = -JoystickMain.getY();
         double x = JoystickMain.getX();
         double angle = MathUtils.atan(x/y) * 180 / Math.PI;  
+        if (x == y == 0){
+            //need heading update code
+            return heading;
+            }
         if (x >= 0){
             if (y >= 0){
                 angle = 360 - angle;
@@ -124,7 +188,14 @@ public class NerdyPIDRobot extends IterativeRobot{
         return angle%360;
     }
     
-    private double calcHeadingNTC(){//Non-Tilt Compensated Compass
+    private double calcHeadingNTC(){
+    
+    /*
+    Updates and returns the heading.
+    Heading is non-tilt compensated.
+    Dependent on a working compass.
+    */
+    
         Compass.read();
         int xAxisCompass = Compass.getAxisX();
         int yAxisCompass = Compass.getAxisY();
@@ -132,7 +203,15 @@ public class NerdyPIDRobot extends IterativeRobot{
         return heading;
     }
     
-    private double calcHeadingTC(){  //Tilt Compensated Compass
+    private double calcHeadingTC(){
+    
+    /*
+    Updates and returns the heading.
+    Heading is tilt compensated.
+    Dependent on a working compass and accelerometer.
+    This process will be more cpu intensive than other heading functions.
+    */
+    
         Accel.read();
         Compass.read();
         int xAxisAccel = Accel.getAxisX();
@@ -150,12 +229,26 @@ public class NerdyPIDRobot extends IterativeRobot{
     }
 
     private double gyroCompassHeading(){
+    
+    /*
+    Updates and returns the heading.
+    Heading is not tilt compensated.
+    Dependent on a working gyro. 
+    */
+    
         double time = ;//Make time a constant.
         heading = (heading + Gyro.getAxisZ()*time) % 360;
         return heading;
     }
     
-    private void calcShortestRotation(){
+    private void calcShortestRotation(double desiredAngle){
+    
+    /*
+    Returns the degrees off between the desired angle and the heading.
+    Must use calcHeadingNTC(), calcHeadingTC(), or gyroCompassHeading() prior
+    to get the most recent result.
+    */
+    
         error = desiredAngle - heading;
 
         if (Math.abs(error) >  180){
@@ -164,15 +257,22 @@ public class NerdyPIDRobot extends IterativeRobot{
     }   
     
     public double GetPIDOutputAngular(double desiredAngle){
+    
+    /*
+    
+    */
+    
         calcShortestRotation();
-        
-        
         double PIDOutputAngular = error  ; 
         return PIDOutputAngular;
         
     }
     
     public double getPIDOutputLinear(double distance){
+    
+    /*
+    
+    */
         
         PIDOutputLinear = 0;
         return PIDOutputLinear;
