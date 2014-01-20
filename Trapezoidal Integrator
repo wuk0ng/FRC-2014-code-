@@ -25,13 +25,13 @@ public class TrapezoidalIntegrator {
             
      
     //Constructor
-    public void TrapezoidalIntegrator(double sampleTimeIn) {
+    public TrapezoidalIntegrator(double sampleTimeIn) {
             m_sampleTime = sampleTimeIn;
     }
     
    
     //This is the default constructor
-    public void TrapezoidalIntegrator() {
+    public TrapezoidalIntegrator() {
             m_sampleTime = .05; 
     }
 
