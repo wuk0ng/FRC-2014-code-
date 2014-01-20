@@ -1,4 +1,3 @@
-
 package NerdHerd.Utilities;
 
 
@@ -10,13 +9,13 @@ package NerdHerd.Utilities;
 public class Limiter{
    double m_limit;
    
-     public void Limiter (){
+     public Limiter (){
          // default constructor.
         m_limit = 1e10; 
         
     }
     
-    public void Limiter (double limitIn){
+    public Limiter (double limitIn){
         m_limit = limitIn; 
         
     }
