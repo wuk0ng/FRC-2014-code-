@@ -23,19 +23,18 @@ public class NerdyAccel extends SensorBase {
      * used for any initialization code.
      */
     private I2C accel;
-    private int xAxisAccel, yAxisAccel, zAxisAccel;
+    private double xAxisAccel, yAxisAccel, zAxisAccel;
     
     public NerdyAccel() {
         DigitalModule module = DigitalModule.getInstance(1);
-        accel = module.getI2C(83);
-    }
-    public void init(){ 
-        accel.write(45, 8);
+        accel = module.getI2C(0x3A);
+        accel.write(0x2D, 0x08);
+        accel.write(0x31, 0x08 | 0x03);
     }
     
     public void read(){
         byte tempXYZ[] = new byte[6];
-        accel.read(50, 6, tempXYZ);//try 0x53
+        accel.read(0x32, 6, tempXYZ);
         xAxisAccel = ((int)tempXYZ[1] << 8) | tempXYZ[0];  //combine 2 bytes into one integer for x;
         yAxisAccel = ((int)tempXYZ[3] << 8) | tempXYZ[2];  //combine 2 bytes into one integer for x;
         zAxisAccel = ((int)tempXYZ[5] << 8) | tempXYZ[4];  //combine 2 bytes into one integer for x;
