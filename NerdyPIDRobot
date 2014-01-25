@@ -29,7 +29,6 @@ public class NerdyPIDRobot extends IterativeRobot{
 
     private double headingTolerance, distanceTolerance;
     private double error;
-    private double turnSpeed, ltPower, rtPower;
     private double headingOffset = 0;
     private double heading = 0;
     private double distanceTraveled = 0;
@@ -48,7 +47,7 @@ public class NerdyPIDRobot extends IterativeRobot{
     public CANJaguar LtDriveMain, LtDriveSub, RtDriveMain, RtDriveSub;
     private TrapezoidalIntegrator HeadingIntegrator, DistanceIntegrator, DistanceRemainingIntegrator;
     
-    private LowPassFilter LowPassFilter;
+    private LowPassFilter LowPassFilterLeft, LowPassFilterRight;
     private Limiter Limiter;
     
             
@@ -79,7 +78,7 @@ public class NerdyPIDRobot extends IterativeRobot{
         Compass.read();
         Accel.read();
         Gyro.read();
-        headingOffset = calcHeadingNTC();
+        headingOffset = gyroCompassHeading();
     }
     
     public void setHeadingTolerance(double degree){
@@ -204,7 +203,7 @@ public class NerdyPIDRobot extends IterativeRobot{
     Resets heading to current heading.               
     */
         
-        headingOffset = calcHeadingNTC();
+        headingOffset = gyroCompassHeading();
     }
     
     public double get360JoystickAngle(){
@@ -278,7 +277,7 @@ public class NerdyPIDRobot extends IterativeRobot{
         return heading;
     }
 
-    private double gyroCompassHeading(){
+    public double gyroCompassHeading(){
     
     /*
     Updates and returns the heading.
@@ -286,6 +285,7 @@ public class NerdyPIDRobot extends IterativeRobot{
     Dependent on a working gyro. 
     */
     
+        Gyro.read();
         double time = 0.050;//Make time a constant.
         heading = (heading + Gyro.getAxisZ()*time) % 360;
         return heading;
@@ -299,6 +299,7 @@ public class NerdyPIDRobot extends IterativeRobot{
     to get the most recent result.
     */
     
+        gyroCompassHeading();
         if (heading >= 90 && heading <= 270){
             heading -= 180;//This makes sure that the robot always faces forward.
         }
@@ -328,7 +329,8 @@ public class NerdyPIDRobot extends IterativeRobot{
     public double getPIDOutputLinear(double desiredDistance){
     
     /*
-    Incomplete
+    Returns the PIDOutput given in relation to the desired distance
+    Use for motor power
     */
         
         calcDistanceRemaining(desiredDistance);
@@ -352,18 +354,19 @@ public class NerdyPIDRobot extends IterativeRobot{
     The 0.5s declaring the left and right powers can be changed as long as the sum is 1.0
     */
        
+        double ltPower, rtPower;
         if (isHeadingTolerable(desiredAngle)){
             ltPower = linearPower;
             rtPower = linearPower;
         } else {
             double angularPower = GetPIDOutputAngular(desiredAngle);
-            ltPower = turnSpeed*0.5 + linearPower*0.5;
-            rtPower = turnSpeed*0.5 + linearPower*0.5;
+            ltPower = angularPower*0.5 + linearPower*0.5;
+            rtPower = angularPower*0.5 + linearPower*0.5;
         }
         ltPower = Limiter.getLimitedValue(ltPower);
         rtPower = Limiter.getLimitedValue(rtPower);
-        LowPassFilter.calculate(ltPower);
-        LowPassFilter.calculate(rtPower);
+        LowPassFilterLeft.calculate(ltPower);
+        LowPassFilterRight.calculate(rtPower);
         try{
             LtDriveMain.set(ltPower);
             LtDriveMain.set(ltPower);
@@ -382,7 +385,7 @@ public class NerdyPIDRobot extends IterativeRobot{
     To use during teleop, use JoystickMain.getTwist()
     */
 
-        LowPassFilter.calculate(angularPower);
+        LowPassFilterLeft.calculate(angularPower);
         try{
             LtDriveMain.set(angularPower);
             LtDriveSub.set(angularPower);
