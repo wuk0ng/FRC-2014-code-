@@ -39,6 +39,7 @@ public class NerdyPIDRobot extends IterativeRobot{
     private double KiLinear = 1/.45;
     private double KdLinear = 0.5;
     private double distanceRemaining = 0;
+    private double w = 0.2;
     
     private NerdyCompass Compass;
     private NerdyAccel Accel;
@@ -415,5 +416,6 @@ public class NerdyPIDRobot extends IterativeRobot{
         
         return number*number;
     }
+    A*sin(w*(t));
     
 } 
