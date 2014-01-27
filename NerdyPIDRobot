@@ -39,7 +39,9 @@ public class NerdyPIDRobot extends IterativeRobot{
     private double KiLinear = 1/.45;
     private double KdLinear = 0.5;
     private double distanceRemaining = 0;
-    private double w = 0.2;
+    //private double w = 0.2;
+    
+    private double lastTime = 0;
     
     private NerdyCompass Compass;
     private NerdyAccel Accel;
@@ -47,7 +49,7 @@ public class NerdyPIDRobot extends IterativeRobot{
     public Joystick JoystickMain;
     public CANJaguar LtDriveMain, LtDriveSub, RtDriveMain, RtDriveSub;
     private TrapezoidalIntegrator HeadingIntegrator, DistanceIntegrator, DistanceRemainingIntegrator;
-    
+    public Timer Timer;
     private LowPassFilter LowPassFilterLeft, LowPassFilterRight;
     private Limiter Limiter;
     
@@ -80,6 +82,8 @@ public class NerdyPIDRobot extends IterativeRobot{
         Accel.read();
         Gyro.read();
         headingOffset = gyroCompassHeading();
+        Timer = new Timer();
+        Timer.start();
     }
     
     public void setHeadingTolerance(double degree){
@@ -416,6 +420,17 @@ public class NerdyPIDRobot extends IterativeRobot{
         
         return number*number;
     }
-    A*sin(w*(t));
+    
+    public double TestSin(double w){// W is radians per second
+    
+    double A = 1; //Amplitude
+    
+    double currentTime = Timer.get();
+    double t = currentTime - lastTime;
+    lastTime = currentTime;
+    
+    double testSin = A * Math.sin(w * t);
+    return testSin;
+    }
     
 } 
