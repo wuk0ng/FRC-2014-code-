@@ -1,0 +1,15 @@
+double atan2(double y, double x){
+
+  if (x == 0){
+    if (y > 0){
+      return 90;
+    }else if (y < 0){
+      return -90;
+    }else{
+      return 9001;
+    }
+  }else {
+    return MathUtils.atan2(y,x);
+  }
+
+}
