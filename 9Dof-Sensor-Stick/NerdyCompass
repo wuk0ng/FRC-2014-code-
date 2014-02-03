@@ -5,7 +5,7 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-package NerdHerd.Sensor;
+package NerdHerd;
 
 
 import edu.wpi.first.wpilibj.DigitalModule;
@@ -33,17 +33,20 @@ public class NerdyCompass extends SensorBase {
     
     public NerdyCompass() {
         DigitalModule module = DigitalModule.getInstance(1);
-        compass = module.getI2C(30);
+       
+        compass = module.getI2C(0x3C);
+        //compass.write(0x2D, 0x08);//TODO : add comments
+        compass.write(0x00, 0x54);//Bits CRA6 and CRA5 are set to 10 to get a 4 sample average.CRA 4 - CRA 2 are set to 101 for 30 hertz reading. CRA 1 and CRA 0 are set to 00 for normal measurement configuration. 
+        compass.write(0x01, 0x20);//Configs gain for default
+        compass.write(0x02, 0x00);//Continuous Measurement Mode
     }
-    public void init(){   
-        compass.write(02, 00);
-    }
+
     public void read(){
         byte tempXYZ[] = new byte[6];
-        compass.read(03, 6, tempXYZ);
+        compass.read(0x03, 6, tempXYZ);//TODO : add comments
         xAxisCompass = ((int)tempXYZ[0] << 8) | tempXYZ[1];  //combine 2 bytes into one integer for x;
-        yAxisCompass = ((int)tempXYZ[2] << 8) | tempXYZ[3];  //combine 2 bytes into one integer for x;
-        zAxisCompass = ((int)tempXYZ[4] << 8) | tempXYZ[5];  //combine 2 bytes into one integer for x; 
+        zAxisCompass = ((int)tempXYZ[2] << 8) | tempXYZ[3];  //combine 2 bytes into one integer for z;
+        yAxisCompass = ((int)tempXYZ[4] << 8) | tempXYZ[5];  //combine 2 bytes into one integer for y; 
     }
     public int getAxisX() {
         return xAxisCompass;
