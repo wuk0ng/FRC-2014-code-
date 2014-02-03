@@ -5,7 +5,7 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-package NerdHerd.Sensor;
+package NerdHerd;
 
 
 import edu.wpi.first.wpilibj.DigitalModule;
@@ -30,29 +30,31 @@ public class NerdyGyro extends SensorBase {
      * used for any initialization code.
      */
     private I2C gyro;
-    private int xAxisGyro, yAxisGyro, zAxisGyro;
+    private double xAxisGyro, yAxisGyro, zAxisGyro;
     
     public NerdyGyro() {
         DigitalModule module = DigitalModule.getInstance(1);
-        gyro = module.getI2C(104);
+        gyro = module.getI2C(0xD0);
+        gyro.write(0x15, 0x20);//Roughly 30 Hz. See formula in spec sheet.
+        gyro.write(0x16, 0x1B);//Configs to full scale range. 11. Configs to 42Hz. 011.
+        gyro.write(0x3E, 0x00);//Configs power to on. And clock to internal oscillator.
     }
-    public void init(){     
-        gyro.write(62, 01);
-    } 
+
+    
     public void read(){
         byte tempXYZ[] = new byte[6];
-        gyro.read(29, 6, tempXYZ);
-        xAxisGyro = ((int)tempXYZ[0] << 8) | tempXYZ[1];  //combine 2 bytes into one integer for x;
-        yAxisGyro = ((int)tempXYZ[2] << 8) | tempXYZ[3];  //combine 2 bytes into one integer for x;
-        zAxisGyro = ((int)tempXYZ[4] << 8) | tempXYZ[5];  //combine 2 bytes into one integer for x; 
+        gyro.read(0x1D, 6, tempXYZ);
+        xAxisGyro = (double)(((short)tempXYZ[0] << 8) | (short)tempXYZ[1]) / 14.375;  //combine 2 bytes into one integer for x;
+        yAxisGyro = (double)(((short)tempXYZ[2] << 8) | (short)tempXYZ[3]) / 14.375;  //combine 2 bytes into one integer for y;
+        zAxisGyro = (double)(((short)tempXYZ[4] << 8) | (short)tempXYZ[5]) / 14.375;  //combine 2 bytes into one integer for z; 
     }
-    public int getAxisX() {
+    public double getAxisX() {
         return xAxisGyro;
     }
-    public int getAxisY() {
+    public double getAxisY() {
         return yAxisGyro;
     }
-    public int getAxisZ() {
+    public double getAxisZ() {
         return zAxisGyro;
     }  
 }
