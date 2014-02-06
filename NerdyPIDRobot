@@ -40,6 +40,8 @@ public class NerdyPIDRobot extends IterativeRobot{
     private double KdLinear = 0.5;
     private double distanceRemaining = 0;
     //private double w = 0.2;
+    public double gyroArray;
+    public int i = 0;
     
     private double lastTime = 0;
     
@@ -84,6 +86,7 @@ public class NerdyPIDRobot extends IterativeRobot{
         headingOffset = gyroCompassHeading();
         Timer = new Timer();
         Timer.start();
+        gyroArray[] = new Array[20];
     }
     
     public void setHeadingTolerance(double degree){
@@ -292,8 +295,25 @@ public class NerdyPIDRobot extends IterativeRobot{
     
         Gyro.read();
         double time = 0.050;//Make time a constant.
-        heading = (heading + Gyro.getAxisZ()*time) % 360;
+        
+        if(i < 20){
+        gyroArray[i] = Gyro.getAxisZ();
+        i++;
+        }else {
+        i = 0;
+        }
+        double average = 0;
+        for(int j = 0; j< gyroArray.length; j++){
+        
+        average += gyroArray[j];
+        }
+        average /= 20;
+        
+        
+        heading = (heading + Gyro.getAxisZ()*time - average) % 360;
+        
         return heading;
+        
     }
     
     private double calcShortestRotation(double desiredAngle){
